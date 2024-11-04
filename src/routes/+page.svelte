@@ -1,120 +1,197 @@
+<!-- src/routes/+page.svelte -->
 <script lang="ts">
   import Header from '$lib/components/Header.svelte';
   import CharacterCard from '$lib/components/CharacterCard.svelte';
   import ChatSidebar from '$lib/components/ChatSidebar.svelte';
   import Footer from '$lib/components/Footer.svelte';
-  import { characters, chatHistory, questionsAsked } from '$lib/stores/gameStore';
+  import CountdownDisplay from '$lib/components/CountdownDisplay.svelte';
+  import { characters, chatHistory, questionsAsked, gameState, resetGame } from '$lib/stores/gameStore';
   import type { Question, Character } from '$lib/types';
   import { get } from 'svelte/store';
+  import { browser } from '$app/environment';
 
-  // State variables
   let gameWon = false;
   let winningCharacter: Character | null = null;
+  let guessInput: string = '';
+  let guessError: string = '';
 
-  // Handle incoming questions from ChatSidebar
+  /**
+   * Handles incoming questions from the ChatSidebar component.
+   * @param event - The CustomEvent containing the Question object.
+   */
   function handleQuestion(event: CustomEvent<Question>) {
     const question: Question = event.detail;
     questionsAsked.update((qs) => [...qs, question]);
     processQuestion(question);
   }
 
-  // Process the question using Bayesian reasoning
+  /**
+   * Processes the user's question by determining the bot's response and updating probabilities.
+   * @param question - The Question object.
+   */
   function processQuestion(question: Question) {
-    const currentCharacters = get(characters);
+    const target = get(gameState).targetCharacter;
 
-    // Step 1: Compute P(E|Hi) for each character
-    const p_E_given_Hi = currentCharacters.map((char) => {
-      // Binary evidence: 1 if character matches the evidence, else 0
-      return char.properties[question.property] === question.adjective ? 1 : 0;
-    });
-
-    // Step 2: Compute P(E) = sum(P(E|Hi) * P(Hi))
-    const p_E = p_E_given_Hi.reduce((sum: number, p, idx) => sum + p * (currentCharacters[idx].probability / 100), 0);
-
-    if (p_E === 0) {
-      // No characters match the evidence
-      chatHistory.update((history) => [...history, { question, response: "No characters match this evidence." }]);
+    if (!target) {
+      chatHistory.update((history) => [...history, { sender: 'bot', message: "Game not started yet." }]);
       return;
     }
 
-    // Step 3: Compute P(Hi|E) for each character
+    // Add user's question to chat history
+    const userQuestionMessage = `${question.type === 'is' ? 'Is it' : 'Is it not'} ${question.property} ${question.adjective}?`;
+    chatHistory.update((history) => [...history, { sender: 'user', message: userQuestionMessage }]);
+
+    // Determine the answer based on the target character's properties
+    let answer: 'Yes' | 'No' = 'No';
+    if (question.type === 'is') {
+      answer = target.properties[question.property] === question.adjective ? 'Yes' : 'No';
+    } else {
+      answer = target.properties[question.property] !== question.adjective ? 'Yes' : 'No';
+    }
+
+    // Add bot's response to chat history
+    chatHistory.update((history) => [...history, { sender: 'bot', message: answer }]);
+
+    // Update probabilities using Bayesian reasoning
+    updateProbabilities(question, answer);
+  }
+
+  /**
+   * Updates the probabilities of each character based on the user's question and bot's answer.
+   * @param question - The Question object.
+   * @param answer - The bot's response ('Yes' or 'No').
+   */
+  function updateProbabilities(question: Question, answer: 'Yes' | 'No') {
+    const currentCharacters = get(characters);
+
+    // Compute P(E|Hi) for each character based on the answer
+    const p_E_given_Hi = currentCharacters.map((char) => {
+      if (question.type === 'is') {
+        return char.properties[question.property] === question.adjective ? 1 : 0;
+      } else {
+        return char.properties[question.property] !== question.adjective ? 1 : 0;
+      }
+    });
+
+    // Compute P(E)
+    const p_E = p_E_given_Hi.reduce((sum:number, p, idx) => sum + p * (currentCharacters[idx].probability / 100), 0);
+
+    if (p_E === 0) {
+      // No characters match the evidence
+      chatHistory.update((history) => [...history, { sender: 'bot', message: "No characters match this evidence." }]);
+      return;
+    }
+
+    // Compute P(Hi|E) using Bayes' Theorem
     const updatedCharacters = currentCharacters.map((char, idx) => {
-      const prior = char.probability / 100; // Convert percentage to probability
+      const prior = char.probability / 100;
       const likelihood = p_E_given_Hi[idx];
       const posterior = (likelihood * prior) / p_E;
       return {
         ...char,
-        probability: posterior * 100 // Convert back to percentage
+        probability: posterior * 100
       };
     });
 
-    // Step 4: Optionally normalize if necessary
+    // Normalize probabilities
     const totalProbability = updatedCharacters.reduce((sum, char) => sum + char.probability, 0);
-    if (Math.abs(totalProbability - 100) > 0.01) { // Allowing a small margin
-      const normalizedCharacters = updatedCharacters.map((char) => ({
-        ...char,
-        probability: (char.probability / totalProbability) * 100
-      }));
-      characters.set(normalizedCharacters);
-    } else {
-      characters.set(updatedCharacters);
+    const normalizedCharacters = updatedCharacters.map((char) => ({
+      ...char,
+      probability: (char.probability / totalProbability) * 100
+    }));
+
+    // Update the store
+    characters.set(normalizedCharacters);
+  }
+
+  /**
+   * Handles the player's guess by checking against the target character.
+   */
+  function handleGuess() {
+    const target = get(gameState).targetCharacter;
+    if (!target) {
+      guessError = 'Game has not started.';
+      return;
     }
 
-    // Step 5: Update chat history with response
-    const response = generateResponse(question, updatedCharacters);
-    chatHistory.update((history) => [...history, { question, response }]);
+    if (guessInput.trim() === '') {
+      guessError = 'Please enter a character name.';
+      return;
+    }
 
-    // Step 6: Check for win condition
-    const winner = updatedCharacters.find((char) => char.probability >= 90);
-    if (winner) {
+    const normalizedGuess = guessInput.trim().toLowerCase();
+    const normalizedTarget = target.name.trim().toLowerCase();
+
+    // Add user's guess to chat history
+    const userGuessMessage = `I guess: ${guessInput.trim()}`;
+    chatHistory.update((history) => [...history, { sender: 'user', message: userGuessMessage }]);
+
+    if (normalizedGuess === normalizedTarget) {
       gameWon = true;
-      winningCharacter = winner;
+      winningCharacter = target;
+      // Add bot's response
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Correct!' }]);
+    } else {
+      guessError = 'Incorrect guess. Try again!';
+      // Add bot's response
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Incorrect guess. Try again!' }]);
     }
-  }
 
-  // Generate a response message based on updated probabilities
-  function generateResponse(question: Question, characters: Character[]): string {
-    // Calculate the total probability of characters matching the evidence
-    const matching = characters.filter((char) => char.properties[question.property] === question.adjective);
-    const totalProbability = matching.reduce((sum, char) => sum + char.probability, 0);
-    const percentage = totalProbability.toFixed(2);
-    return `Based on your question, the probability of characters matching "${question.adjective}" for "${question.property}" is now ${percentage}%.`;
-  }
-
-  // Reset the game by clearing localStorage and reloading
-  function resetGame() {
-    localStorage.clear();
-    window.location.reload();
+    // Clear the guess input
+    guessInput = '';
   }
 </script>
 
-<!-- Header Component -->
 <Header title="Guessing Game" />
+
+<!-- Countdown and Character Display -->
+<CountdownDisplay />
 
 <div class="flex">
   <!-- Chat Sidebar Component -->
   <ChatSidebar on:question={handleQuestion} />
 
-  <!-- Main Content Area: Character Cards -->
+  <!-- Main Content Area: Character Cards and Guessing -->
   <main class="flex-1 p-4">
     <div class="grid grid-cols-4 gap-4">
       {#each $characters as character}
         <CharacterCard {character} />
       {/each}
     </div>
+
+    <!-- Guessing Section -->
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-4">Guess the Character</h2>
+      <input
+        type="text"
+        bind:value={guessInput}
+        placeholder="Enter character name"
+        class="w-full p-2 border rounded mb-2"
+        disabled={!$gameState.gameStarted || gameWon}
+      />
+      <button
+        on:click={handleGuess}
+        class="w-full bg-green-500 text-white p-2 rounded disabled:bg-gray-400"
+        disabled={!$gameState.gameStarted || gameWon || guessInput.trim() === ''}
+      >
+        Guess
+      </button>
+      {#if guessError}
+        <p class="text-red-500 mt-2">{guessError}</p>
+      {/if}
+    </div>
   </main>
 </div>
 
-<!-- Footer Component -->
 <Footer />
 
-<!-- Win Modal: Displayed when game is won and winningCharacter is set -->
+<!-- Win Modal -->
 {#if gameWon && winningCharacter}
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="bg-white p-6 rounded-lg shadow-lg text-center">
       <h2 class="text-2xl font-bold mb-4">You Win!</h2>
       <p>The character is <strong>{winningCharacter.name}</strong>.</p>
-      <img src={winningCharacter.imageUrl} alt={winningCharacter.name} class="w-32 h-32 mt-2 mb-4" />
+      <p class="mt-2">Congratulations!</p>
       <button on:click={resetGame} class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
         Play Again
       </button>

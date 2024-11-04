@@ -1,7 +1,8 @@
+<!-- src/lib/components/ChatSidebar.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { chatHistory } from '../stores/gameStore';
-  import type { Question, CharacterProperties } from '../types';
+  import type { Question, ChatEntry, CharacterProperties } from '../types';
 
   const dispatch = createEventDispatcher();
 
@@ -169,12 +170,18 @@
     ]
   };
 
+  /**
+   * Resets the question selection fields.
+   */
   const resetQuestion = () => {
     questionType = null;
     selectedProperty = null;
     selectedAdjective = null;
   };
 
+  /**
+   * Submits the question by dispatching it to the parent component.
+   */
   const submitQuestion = () => {
     if (questionType && selectedProperty && selectedAdjective) {
       const question: Question = {
@@ -190,7 +197,7 @@
   };
 </script>
 
-<div class="w-1/4 p-4 bg-gray-100 h-screen overflow-y-auto">
+<div class="w-1/4 p-4 bg-gray-100 h-screen overflow-y-auto flex flex-col">
   <h2 class="text-xl font-semibold mb-4">Ask a Question</h2>
 
   <!-- Step 1: Choose Question Type -->
@@ -255,16 +262,26 @@
   {/if}
 
   <!-- Chat History -->
-  <div class="mt-6">
+  <div class="mt-6 flex-1 overflow-y-auto">
     <h3 class="text-lg font-semibold mb-2">History</h3>
     <ul>
-      {#each $chatHistory as entry}
-        <li class="mb-2">
-          <strong>Q:</strong> {entry.question.type === 'is' ? 'Is it' : 'Is it not'} {entry.question.property} {entry.question.adjective}
-          <br />
-          <strong>A:</strong> {entry.response}
-        </li>
-      {/each}
-    </ul>
+  {#each $chatHistory as entry}
+    <li class="mb-2">
+      {#if entry.sender === 'user'}
+        <div class="flex justify-end">
+          <div class="bg-blue-500 text-white p-2 rounded-lg max-w-xs">
+            <strong>You:</strong> {entry.message}
+          </div>
+        </div>
+      {:else if entry.sender === 'bot'}
+        <div class="flex justify-start">
+          <div class="bg-green-500 text-white p-2 rounded-lg max-w-xs">
+            <strong>Bot:</strong> {entry.message}
+          </div>
+        </div>
+      {/if}
+    </li>
+  {/each}
+</ul>
   </div>
 </div>

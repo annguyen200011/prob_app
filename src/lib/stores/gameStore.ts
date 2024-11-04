@@ -1,11 +1,17 @@
-// src/lib/stores/gameStore.ts
-import { writable } from 'svelte/store';
-import type { Character, Question } from '../types';
+import { writable, type Writable } from 'svelte/store';
+import type { Character, Question, GameState, ChatEntry } from '../types';
 import { generateRandomProps, generateImageUrl } from '../utils';
 import { browser } from '$app/environment';
 
-// Utility to load from localStorage or initialize with defaults
-function loadStore<T>(key: string, defaultValue: T) {
+/**
+ * Utility function to load a Svelte writable store from localStorage
+ * or initialize it with a default value if not present.
+ *
+ * @param key - The localStorage key.
+ * @param defaultValue - The default value for the store.
+ * @returns A writable store of type T.
+ */
+function loadStore<T>(key: string, defaultValue: T): Writable<T> {
 	if (browser) {
 		const stored = localStorage.getItem(key);
 		if (stored) {
@@ -13,6 +19,8 @@ function loadStore<T>(key: string, defaultValue: T) {
 				return writable<T>(JSON.parse(stored));
 			} catch (e) {
 				console.error(`Error parsing localStorage key "${key}":`, e);
+				// Optionally, you might want to remove corrupted data
+				localStorage.removeItem(key);
 			}
 		}
 	}
@@ -31,9 +39,19 @@ const initialCharacters: Character[] = Array.from({ length: 24 }, (_, i) => {
 	};
 });
 
-export const characters = loadStore<Character[]>('characters', initialCharacters);
-export const chatHistory = loadStore<{ question: Question; response: string }[]>('chatHistory', []);
-export const questionsAsked = loadStore<Question[]>('questionsAsked', []);
+// Initialize stores with explicit types
+export const characters: Writable<Character[]> = loadStore<Character[]>(
+	'characters',
+	initialCharacters
+);
+export const chatHistory: Writable<ChatEntry[]> = loadStore<ChatEntry[]>('chatHistory', []);
+export const questionsAsked: Writable<Question[]> = loadStore<Question[]>('questionsAsked', []);
+export const gameState: Writable<GameState> = loadStore<GameState>('gameState', {
+	targetCharacter: null,
+	gameStarted: false,
+	gameWon: false,
+	guessResult: null
+});
 
 // Subscribe to store changes to save to localStorage, only on the client
 if (browser) {
@@ -42,4 +60,31 @@ if (browser) {
 	questionsAsked.subscribe((value) =>
 		localStorage.setItem('questionsAsked', JSON.stringify(value))
 	);
+	gameState.subscribe((value) => localStorage.setItem('gameState', JSON.stringify(value)));
+}
+
+// Function to start a new game
+export function startGame() {
+	if (browser) {
+		const randomIndex = Math.floor(Math.random() * initialCharacters.length);
+		const selectedCharacter = initialCharacters[randomIndex];
+		gameState.set({
+			targetCharacter: selectedCharacter,
+			gameStarted: true,
+			gameWon: false,
+			guessResult: null
+		});
+		// Reset other stores
+		chatHistory.set([]);
+		questionsAsked.set([]);
+		characters.set(initialCharacters);
+	}
+}
+
+// Function to reset the game
+export function resetGame() {
+	if (browser) {
+		localStorage.clear();
+		window.location.reload();
+	}
 }

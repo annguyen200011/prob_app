@@ -25,3 +25,15 @@ export interface Question {
 	property: keyof CharacterProperties;
 	adjective: string;
 }
+
+export interface ChatEntry {
+	sender: 'user' | 'bot';
+	message: string;
+}
+
+export interface GameState {
+	targetCharacter: Character | null;
+	gameStarted: boolean;
+	gameWon: boolean;
+	guessResult: 'correct' | 'incorrect' | null;
+}
