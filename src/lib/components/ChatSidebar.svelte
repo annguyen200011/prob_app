@@ -1,7 +1,7 @@
 <!-- src/lib/components/ChatSidebar.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { chatHistory } from '../stores/gameStore';
+  import { chatHistory, gameState } from '../stores/gameStore'; // Import gameState
   import type { Question, ChatEntry, CharacterProperties } from '../types';
 
   const dispatch = createEventDispatcher();
@@ -9,6 +9,9 @@
   let questionType: 'is' | 'is_not' | null = null;
   let selectedProperty: keyof CharacterProperties | null = null;
   let selectedAdjective: string | null = null;
+
+  let guessInput: string = '';
+  let guessError: string = '';
 
   // Define available properties and adjectives
   const properties: { [key in keyof CharacterProperties]: string[] } = {
@@ -195,9 +198,49 @@
       resetQuestion();
     }
   };
+
+/**
+   * Handles the player's guess by dispatching a custom event.
+   */
+  const submitGuess = () => {
+    if (guessInput.trim() === '') {
+      guessError = 'Please enter a character name.';
+      return;
+    }
+
+    // Dispatch a 'guess' event with the guess input
+    dispatch('guess', guessInput.trim());
+
+    // Reset the guess input and error
+    guessInput = '';
+    guessError = '';
+  };
 </script>
 
 <div class="w-1/4 p-4 bg-gray-100 h-screen overflow-y-auto flex flex-col">
+  <!-- Guessing Section at the Top -->
+  <div class="mb-6">
+    <h2 class="text-xl font-semibold mb-2">Guess the Character</h2>
+    <input
+      type="text"
+      bind:value={guessInput}
+      placeholder="Enter character name"
+      class="w-full p-2 border rounded mb-2"
+      disabled={!$gameState.gameStarted || $gameState.gameWon}
+    />
+    <button
+      on:click={submitGuess}
+      class="w-full bg-green-500 text-white p-2 rounded disabled:bg-gray-400"
+      disabled={!$gameState.gameStarted || $gameState.gameWon || guessInput.trim() === ''}
+    >
+      Guess
+    </button>
+    {#if guessError}
+      <p class="text-red-500 mt-2">{guessError}</p>
+    {/if}
+  </div>
+
+  <!-- Ask a Question Section -->
   <h2 class="text-xl font-semibold mb-4">Ask a Question</h2>
 
   <!-- Step 1: Choose Question Type -->

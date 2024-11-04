@@ -6,14 +6,12 @@
   import Footer from '$lib/components/Footer.svelte';
   import CountdownDisplay from '$lib/components/CountdownDisplay.svelte';
   import { characters, chatHistory, questionsAsked, gameState, resetGame } from '$lib/stores/gameStore';
-  import type { Question, Character } from '$lib/types';
+  import type { Question, Character, ChatEntry } from '$lib/types';
   import { get } from 'svelte/store';
   import { browser } from '$app/environment';
 
   let gameWon = false;
   let winningCharacter: Character | null = null;
-  let guessInput: string = '';
-  let guessError: string = '';
 
   /**
    * Handles incoming questions from the ChatSidebar component.
@@ -23,6 +21,50 @@
     const question: Question = event.detail;
     questionsAsked.update((qs) => [...qs, question]);
     processQuestion(question);
+  }
+
+  /**
+   * Handles incoming guesses from the ChatSidebar component.
+   * @param event - The CustomEvent containing the guess string.
+   */
+  function handleGuess(event: CustomEvent<string>) {
+    const guess = event.detail;
+    processGuess(guess);
+  }
+
+  /**
+   * Processes the user's guess by comparing it with the target character.
+   * @param guess - The player's guess.
+   */
+  function processGuess(guess: string) {
+    const target = get(gameState).targetCharacter;
+    if (!target) {
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Game has not started yet.' }]);
+      return;
+    }
+
+    if (guess.trim() === '') {
+      // Should not happen due to UI disabling, but handle just in case
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Please enter a character name.' }]);
+      return;
+    }
+
+    const normalizedGuess = guess.trim().toLowerCase();
+    const normalizedTarget = target.name.trim().toLowerCase();
+
+    // Add user's guess to chat history
+    const userGuessMessage = `I guess: ${guess.trim()}`;
+    chatHistory.update((history) => [...history, { sender: 'user', message: userGuessMessage }]);
+
+    if (normalizedGuess === normalizedTarget) {
+      gameWon = true;
+      winningCharacter = target;
+      // Add bot's response
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Correct!' }]);
+    } else {
+      // Add bot's response
+      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Incorrect guess. Try again!' }]);
+    }
   }
 
   /**
@@ -103,43 +145,6 @@
     // Update the store
     characters.set(normalizedCharacters);
   }
-
-  /**
-   * Handles the player's guess by checking against the target character.
-   */
-  function handleGuess() {
-    const target = get(gameState).targetCharacter;
-    if (!target) {
-      guessError = 'Game has not started.';
-      return;
-    }
-
-    if (guessInput.trim() === '') {
-      guessError = 'Please enter a character name.';
-      return;
-    }
-
-    const normalizedGuess = guessInput.trim().toLowerCase();
-    const normalizedTarget = target.name.trim().toLowerCase();
-
-    // Add user's guess to chat history
-    const userGuessMessage = `I guess: ${guessInput.trim()}`;
-    chatHistory.update((history) => [...history, { sender: 'user', message: userGuessMessage }]);
-
-    if (normalizedGuess === normalizedTarget) {
-      gameWon = true;
-      winningCharacter = target;
-      // Add bot's response
-      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Correct!' }]);
-    } else {
-      guessError = 'Incorrect guess. Try again!';
-      // Add bot's response
-      chatHistory.update((history) => [...history, { sender: 'bot', message: 'Incorrect guess. Try again!' }]);
-    }
-
-    // Clear the guess input
-    guessInput = '';
-  }
 </script>
 
 <Header title="Guessing Game" />
@@ -149,36 +154,14 @@
 
 <div class="flex">
   <!-- Chat Sidebar Component -->
-  <ChatSidebar on:question={handleQuestion} />
+  <ChatSidebar on:question={handleQuestion} on:guess={handleGuess} />
 
-  <!-- Main Content Area: Character Cards and Guessing -->
+  <!-- Main Content Area: Character Cards -->
   <main class="flex-1 p-4">
     <div class="grid grid-cols-4 gap-4">
       {#each $characters as character}
         <CharacterCard {character} />
       {/each}
-    </div>
-
-    <!-- Guessing Section -->
-    <div class="mt-8">
-      <h2 class="text-xl font-semibold mb-4">Guess the Character</h2>
-      <input
-        type="text"
-        bind:value={guessInput}
-        placeholder="Enter character name"
-        class="w-full p-2 border rounded mb-2"
-        disabled={!$gameState.gameStarted || gameWon}
-      />
-      <button
-        on:click={handleGuess}
-        class="w-full bg-green-500 text-white p-2 rounded disabled:bg-gray-400"
-        disabled={!$gameState.gameStarted || gameWon || guessInput.trim() === ''}
-      >
-        Guess
-      </button>
-      {#if guessError}
-        <p class="text-red-500 mt-2">{guessError}</p>
-      {/if}
     </div>
   </main>
 </div>
