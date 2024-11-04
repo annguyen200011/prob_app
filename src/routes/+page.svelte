@@ -5,6 +5,7 @@
 	import ChatSidebar from '$lib/components/ChatSidebar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import CountdownDisplay from '$lib/components/CountdownDisplay.svelte';
+	import CharacterModal from '$lib/components/CharacterModal.svelte'; // Import the modal
 	import {
 		characters,
 		chatHistory,
@@ -19,17 +20,55 @@
 	let gameWon = false;
 	let winningCharacter: Character | null = null;
 
+	// State for the modal
+	let selectedCharacter: Character | null = null;
+	let isModalOpen: boolean = false;
+
+	/**
+	 * Handles incoming questions from the ChatSidebar component.
+	 * @param event - The CustomEvent containing the Question object.
+	 */
 	function handleQuestion(event: CustomEvent<Question>) {
 		const question: Question = event.detail;
 		questionsAsked.update((qs) => [...qs, question]);
 		processQuestion(question);
 	}
 
+	/**
+	 * Handles incoming guesses from the ChatSidebar component.
+	 * @param event - The CustomEvent containing the guess string.
+	 */
 	function handleGuess(event: CustomEvent<string>) {
 		const guess = event.detail;
 		processGuess(guess);
 	}
 
+	/**
+	 * Handles the selection of a character from CharacterCard.
+	 * @param event - The CustomEvent containing the selected Character object.
+	 */
+	function handleSelectCharacter(event: CustomEvent<Character>) {
+		selectedCharacter = event.detail;
+		isModalOpen = true;
+		console.log(`Modal opened for: ${selectedCharacter.name}`); // Debugging line
+	}
+
+	/**
+	 * Closes the CharacterModal.
+	 */
+	function closeModal() {
+		isModalOpen = false;
+		selectedCharacter = null;
+		console.log('Modal closed'); // Debugging line
+		if (browser) {
+			document.body.classList.remove('modal-open');
+		}
+	}
+
+	/**
+	 * Processes the user's guess by comparing it with the target character.
+	 * @param guess - The player's guess.
+	 */
 	function processGuess(guess: string) {
 		const target = get(gameState).targetCharacter;
 		if (!target) {
@@ -41,6 +80,7 @@
 		}
 
 		if (guess.trim() === '') {
+			// Should not happen due to UI disabling, but handle just in case
 			chatHistory.update((history) => [
 				...history,
 				{ sender: 'bot', message: 'Please enter a character name.' }
@@ -69,6 +109,10 @@
 		}
 	}
 
+	/**
+	 * Processes the user's question by determining the bot's response and updating probabilities.
+	 * @param question - The Question object.
+	 */
 	function processQuestion(question: Question) {
 		const target = get(gameState).targetCharacter;
 
@@ -99,6 +143,11 @@
 		updateProbabilities(question, answer);
 	}
 
+	/**
+	 * Updates the probabilities of each character based on the user's question and bot's answer.
+	 * @param question - The Question object.
+	 * @param answer - The bot's response ('Yes' or 'No').
+	 */
 	function updateProbabilities(question: Question, answer: 'Yes' | 'No') {
 		const currentCharacters = get(characters);
 
@@ -124,6 +173,7 @@
 		);
 
 		if (p_E === 0) {
+			// No characters match the evidence
 			chatHistory.update((history) => [
 				...history,
 				{ sender: 'bot', message: 'No characters match this evidence.' }
@@ -147,8 +197,6 @@
 	}
 </script>
 
-<!-- The rest of your component remains unchanged -->
-
 <Header title="Guessing Game" />
 
 <!-- Countdown and Character Display -->
@@ -162,7 +210,7 @@
 	<main class="flex-1 p-4">
 		<div class="grid grid-cols-4 gap-4">
 			{#each $characters as character}
-				<CharacterCard {character} />
+				<CharacterCard {character} on:select={handleSelectCharacter} />
 			{/each}
 		</div>
 	</main>
@@ -172,8 +220,15 @@
 
 <!-- Win Modal -->
 {#if gameWon && winningCharacter}
-	<div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-		<div class="rounded-lg bg-white p-6 text-center shadow-lg">
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+		<div class="relative rounded-lg bg-white p-6 text-center shadow-lg">
+			<button
+				class="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+				on:click={resetGame}
+				aria-label="Close Modal"
+			>
+				&times;
+			</button>
 			<h2 class="mb-4 text-2xl font-bold">You Win!</h2>
 			<p>The character is <strong>{winningCharacter.name}</strong>.</p>
 			<p class="mt-2">Congratulations!</p>
@@ -183,3 +238,6 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Character Modal -->
+<CharacterModal character={selectedCharacter} isOpen={isModalOpen} on:close={closeModal} />
