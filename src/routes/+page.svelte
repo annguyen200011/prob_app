@@ -1,6 +1,5 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Header from '$lib/components/Header.svelte';
 	import CharacterCard from '$lib/components/CharacterCard.svelte';
 	import ChatSidebar from '$lib/components/ChatSidebar.svelte';
@@ -206,21 +205,24 @@
 <!-- Countdown and Character Display -->
 <CountdownDisplay bind:displayComplete />
 
-{#if displayComplete}
-	<div class="flex min-h-screen">
-		<!-- Chat Sidebar Component -->
-		<ChatSidebar on:question={handleQuestion} on:guess={handleGuess} />
+<!-- Main Content Area -->
+<div
+	class="flex min-h-screen transition-opacity duration-500"
+	class:opacity-0={!displayComplete}
+	class:pointer-events-none={!displayComplete}
+>
+	<!-- Chat Sidebar Component -->
+	<ChatSidebar on:question={handleQuestion} on:guess={handleGuess} />
 
-		<!-- Main Content Area: Character Cards -->
-		<main class="flex-1 bg-gray-100 p-6">
-			<div class="grid grid-cols-6 gap-4">
-				{#each $characters as character}
-					<CharacterCard {character} on:select={handleSelectCharacter} />
-				{/each}
-			</div>
-		</main>
-	</div>
-{/if}
+	<!-- Character Cards Area -->
+	<main class="flex-1 bg-gray-100 p-6">
+		<div class="grid grid-cols-6 gap-4">
+			{#each $characters as character}
+				<CharacterCard {character} on:select={handleSelectCharacter} />
+			{/each}
+		</div>
+	</main>
+</div>
 
 <Footer />
 
