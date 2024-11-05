@@ -33,7 +33,7 @@
 			? '#000000'
 			: character.probability > 90
 				? '#ffffff'
-				: character.probability > 20
+				: character.probability > 15
 					? '#000000'
 					: '#3b82f6'};"
 	>
@@ -50,7 +50,7 @@
 			? '#000000'
 			: character.probability > 90
 				? '#ffffff'
-				: character.probability > 20
+				: character.probability > 15
 					? '#000000'
 					: '#3b82f6'};"
 	>
