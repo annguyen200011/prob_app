@@ -11,7 +11,7 @@
 		chatHistory,
 		questionsAsked,
 		gameState,
-		resetGame
+		resetGame as resetGameStore
 	} from '$lib/stores/gameStore';
 	import type { Question, Character, ChatEntry } from '$lib/types';
 	import { get } from 'svelte/store';
@@ -26,6 +26,12 @@
 
 	// State for the countdown display
 	let displayComplete = false;
+
+	// Function to reset the game and restart the countdown
+	function resetGame() {
+		displayComplete = false; // Hide main content again
+		resetGameStore(); // Call the store's reset function to reset game state
+	}
 
 	/**
 	 * Handles incoming questions from the ChatSidebar component.
@@ -200,7 +206,7 @@
 	}
 </script>
 
-<Header title="Guessing Game" />
+<Header title="Guessing Game" onReset={resetGame} />
 
 <!-- Countdown and Character Display -->
 <CountdownDisplay bind:displayComplete />
