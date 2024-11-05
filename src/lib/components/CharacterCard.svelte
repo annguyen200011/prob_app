@@ -18,18 +18,42 @@
 <!-- Use a button instead of div -->
 <button
 	type="button"
-	class="flex cursor-pointer flex-col items-center rounded-lg bg-white p-4 shadow-md transition-shadow duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+	class="flex cursor-pointer flex-col items-center rounded-lg p-4 shadow-md transition-shadow duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
 	on:click={handleClick}
+	style="background-image: linear-gradient(to top, {character.probability === 0
+		? '#d1d5db'
+		: '#3b82f6'} {character.probability}%, #ffffff {character.probability}%);"
+	class:opacity-50={character.probability === 0}
+	class:cursor-not-allowed={character.probability === 0}
+	disabled={character.probability === 0}
 >
+	<p
+		class="relative z-10 text-lg font-semibold"
+		style="color: {character.probability === 0
+			? '#000000'
+			: character.probability > 90
+				? '#ffffff'
+				: character.probability > 20
+					? '#000000'
+					: '#3b82f6'};"
+	>
+		{character.name}
+	</p>
+
 	<!-- Character Image -->
-	<img src={character.imageUrl} alt={character.name} class="mb-4 h-24 w-24" />
+	<img src={character.imageUrl} alt={character.name} class="relative z-10 mb-4 h-24 w-24" />
 
-	<!-- Character Name -->
-	<p class="text-lg font-semibold">{character.name}</p>
-
-	<!-- Probability Bar -->
-	<div class="mt-2 h-4 w-full rounded-full bg-gray-200">
-		<div class="h-4 rounded-full bg-blue-500" style="width: {character.probability}%;"></div>
-	</div>
-	<p class="mt-1 text-sm text-gray-600">Probability: {character.probability.toFixed(2)}%</p>
+	<!-- Probability Text -->
+	<p
+		class="relative z-10 mt-1 text-sm"
+		style="color: {character.probability === 0
+			? '#000000'
+			: character.probability > 90
+				? '#ffffff'
+				: character.probability > 20
+					? '#000000'
+					: '#3b82f6'};"
+	>
+		Probability: {character.probability.toFixed(2)}%
+	</p>
 </button>
