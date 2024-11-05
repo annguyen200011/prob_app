@@ -53,7 +53,7 @@
 {#if isOpen && character}
 	<!-- Overlay -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
 		role="dialog"
 		aria-labelledby="modal-title"
 		aria-modal="true"
@@ -61,45 +61,63 @@
 		<!-- Modal Content -->
 		<div
 			bind:this={modalContent}
-			class="relative w-11/12 rounded-lg bg-white p-6 shadow-lg md:w-2/3 lg:w-1/2"
+			class="relative w-full max-w-lg rounded-lg bg-white p-8 shadow-2xl"
 			tabindex="-1"
 		>
 			<!-- Close Button -->
 			<button
-				class="absolute right-4 top-4 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="absolute right-4 top-4 rounded-full p-2 text-4xl text-gray-500 hover:text-gray-700 focus:outline-none"
 				on:click={closeModal}
 				aria-label="Close Modal"
 			>
 				&times;
 			</button>
 
-			<!-- Character Name -->
-			<h2 id="modal-title" class="mb-4 text-2xl font-bold">{character.name}</h2>
-
-			<!-- Character Image -->
-			<img src={character.imageUrl} alt={character.name} class="mx-auto mb-4 h-32 w-32" />
-
-			<!-- Character Properties -->
-			<div class="grid grid-cols-2 gap-4">
-				{#each Object.entries(character.properties) as [property, value]}
-					<div>
-						<span class="font-semibold capitalize">{property.replace(/([A-Z])/g, ' $1')}:</span>
-						<span>{value}</span>
-					</div>
-				{/each}
+			<!-- Character Name and Image -->
+			<div class="mb-6 text-center">
+				<h2 id="modal-title" class="text-3xl font-bold text-blue-600">{character.name}</h2>
+				<img
+					src={character.imageUrl}
+					alt={character.name}
+					class="mx-auto mt-4 h-40 w-40 rounded-full border-4 border-blue-500 shadow-md"
+				/>
 			</div>
 
-			<!-- Probability -->
-			<div class="mt-4">
-				<span class="font-semibold">Probability:</span>
-				<span>{character.probability.toFixed(2)}%</span>
+			<!-- Probability Bar -->
+			<div class="mb-6 mt-4">
+				<p class="text-center font-semibold">Probability</p>
+				<div class="h-4 w-full overflow-hidden rounded-full bg-gray-200">
+					<div
+						class="h-full rounded-full"
+						style="width: {character.probability}%; background-color: {character.probability > 75
+							? '#34D399'
+							: character.probability > 25
+								? '#60A5FA'
+								: '#F87171'};"
+					></div>
+				</div>
+				<p class="mt-1 text-center text-sm font-semibold text-gray-600">
+					{character.probability.toFixed(2)}%
+				</p>
+			</div>
+
+			<!-- Character Properties -->
+			<div class="grid grid-cols-3 gap-4">
+				{#each Object.entries(character.properties) as [property, value]}
+					<div class="flex flex-col items-start rounded-lg bg-gray-100 p-3 shadow-sm">
+						<span class="text-xs font-bold uppercase text-gray-500"
+							>{property.replace(/([A-Z])/g, ' $1')}</span
+						>
+						<span class="text-sm font-medium text-gray-800">{value}</span>
+					</div>
+				{/each}
 			</div>
 		</div>
 	</div>
 {/if}
 
 <style>
-	/* Optional: Add smooth transition for the modal */
+	/* Optional: Add smooth transition for modal appearance */
 	div[role='dialog'] {
 		transition: opacity 0.3s ease;
 	}

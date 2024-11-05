@@ -234,19 +234,36 @@
 
 <!-- Win Modal -->
 {#if gameWon && winningCharacter}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-		<div class="relative rounded-lg bg-white p-6 text-center shadow-lg">
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+		<div class="relative w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-xl">
+			<!-- Close Button -->
 			<button
-				class="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+				class="absolute right-4 top-4 p-2 text-4xl text-gray-500 hover:text-gray-700 focus:outline-none"
 				on:click={resetGame}
 				aria-label="Close Modal"
 			>
 				&times;
 			</button>
-			<h2 class="mb-4 text-2xl font-bold">You Win!</h2>
-			<p>The character is <strong>{winningCharacter.name}</strong>.</p>
-			<p class="mt-2">Congratulations!</p>
-			<button on:click={resetGame} class="mt-4 rounded bg-blue-500 px-4 py-2 text-white">
+
+			<!-- Title and Winning Character -->
+			<h2 class="mb-4 text-3xl font-bold text-blue-600">You Win!</h2>
+			<p class="text-xl">The character is <strong>{winningCharacter.name}</strong>!</p>
+
+			<!-- Character Image -->
+			<img
+				src={winningCharacter.imageUrl}
+				alt={winningCharacter.name}
+				class="mx-auto my-4 h-48 w-48 rounded-full border-4 border-blue-500 shadow-lg"
+			/>
+
+			<!-- Summary of Questions Used -->
+			<p class="text-lg font-semibold">Questions Asked: {$questionsAsked.length}</p>
+
+			<!-- Play Again Button -->
+			<button
+				on:click={resetGame}
+				class="mt-6 w-full rounded bg-blue-500 px-6 py-3 font-semibold text-white"
+			>
 				Play Again
 			</button>
 		</div>
