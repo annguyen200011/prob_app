@@ -1,6 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import type { Character, Question, GameState, ChatEntry } from '../types';
-import { generateRandomProps, generateImageUrl } from '../utils';
+import { generateRandomProps, getRandomName, generateImageUrl } from '../utils';
 import { browser } from '$app/environment';
 
 /**
@@ -32,7 +32,7 @@ const initialCharacters: Character[] = Array.from({ length: 24 }, (_, i) => {
 	const props = generateRandomProps();
 	return {
 		id: i + 1,
-		name: `Character ${i + 1}`,
+		name: getRandomName(),
 		properties: props,
 		probability: 100 / 24, // Initial equal probability
 		imageUrl: generateImageUrl(props)
