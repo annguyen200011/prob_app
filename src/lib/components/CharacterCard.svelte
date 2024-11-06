@@ -35,7 +35,7 @@
 		>
 			High
 		</span>
-	{:else if character.probability >= 15}
+	{:else if character.probability >= 10}
 		<span
 			class="absolute right-2 top-2 rounded-full bg-yellow-500 px-2 py-1 text-xs font-semibold text-white shadow-md"
 		>

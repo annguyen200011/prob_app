@@ -123,6 +123,37 @@
 				...history,
 				{ sender: 'bot', message: 'Incorrect guess. Try again!' }
 			]);
+
+			// Set the guessed character's probability to 0 and adjust others
+			characters.update((chars) => {
+				const updatedChars = chars.map((char) => {
+					if (char.name.trim().toLowerCase() === normalizedGuess) {
+						return { ...char, probability: 0 };
+					}
+					return char;
+				});
+
+				// Calculate the total probability of remaining characters
+				const totalRemaining = updatedChars
+					.filter((char) => char.probability > 0)
+					.reduce((sum, char) => sum + char.probability, 0);
+
+				// Avoid division by zero
+				if (totalRemaining === 0) {
+					// If no characters are left, this should not happen, but handle gracefully
+					return updatedChars;
+				}
+
+				// Normalize the probabilities of remaining characters to sum to 100
+				const normalizedChars = updatedChars.map((char) => {
+					if (char.probability > 0) {
+						return { ...char, probability: (char.probability / totalRemaining) * 100 };
+					}
+					return char;
+				});
+
+				return normalizedChars;
+			});
 		}
 	}
 

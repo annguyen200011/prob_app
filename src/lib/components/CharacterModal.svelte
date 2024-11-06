@@ -91,7 +91,7 @@
 						class="h-full rounded-full transition-all duration-500"
 						style="width: {character.probability}%; background-color: {character.probability >= 20
 							? '#34D399' /* Green for high probability */
-							: character.probability >= 15
+							: character.probability >= 10
 								? '#FBBF24' /* Yellow for medium probability */
 								: '#F87171'};  /* Red for low probability */"
 					></div>
