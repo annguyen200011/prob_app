@@ -325,9 +325,9 @@
 				<li class="flex items-start">
 					{#if entry.sender === 'user'}
 						<div class="ml-auto flex max-w-xs items-center space-x-2 text-right">
-							<span class="rounded-lg bg-blue-100 p-2 font-medium text-blue-800"
-								>{entry.message}</span
-							>
+							<span class="rounded-lg bg-blue-100 p-2 font-medium text-blue-800">
+								{entry.message}
+							</span>
 							<div
 								class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 font-semibold text-white"
 							>
@@ -341,9 +341,17 @@
 							>
 								B
 							</div>
-							<span class="rounded-lg bg-green-100 p-2 font-medium text-green-800"
-								>{entry.message}</span
+							<span
+								class="rounded-lg p-2 font-medium"
+								class:bg-green-100={entry.message === 'Yes'}
+								class:text-green-800={entry.message === 'Yes'}
+								class:bg-red-100={entry.message === 'No'}
+								class:text-red-800={entry.message === 'No'}
+								class:bg-yellow-100={entry.message === 'Maybe'}
+								class:text-yellow-800={entry.message === 'Maybe'}
 							>
+								{entry.message}
+							</span>
 						</div>
 					{/if}
 				</li>

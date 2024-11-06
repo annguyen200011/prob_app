@@ -299,3 +299,81 @@ export function getRandomName(): string {
 	nameIndex++;
 	return name;
 }
+
+export const propertyDependencies: {
+	[key in keyof CharacterProperties]?: Array<{
+		values: string[];
+		affects: Array<keyof CharacterProperties>;
+	}>;
+} = {
+	topType: [
+		{
+			values: [
+				'NoHair',
+				'Eyepatch',
+				'Hat',
+				'Hijab',
+				'Turban',
+				'WinterHat1',
+				'WinterHat2',
+				'WinterHat3',
+				'WinterHat4'
+			],
+			affects: ['hairColor']
+		},
+		{
+			values: ['Eyepatch'],
+			affects: ['accessoriesType']
+		}
+	],
+	accessoriesType: [
+		{
+			values: ['Kurt', 'Prescription01', 'Prescription02', 'Round', 'Sunglasses', 'Wayfarers'],
+			affects: ['eyebrowType']
+		},
+		{
+			values: ['Kurt', 'Sunglasses', 'Wayfarers'],
+			affects: ['eyeType']
+		}
+	],
+	facialHairType: [
+		{
+			values: ['Blank'],
+			affects: ['facialHairColor']
+		}
+	],
+	clotheType: [
+		{
+			values: ['BlazerShirt', 'BlazerSweater'],
+			affects: ['clotheColor']
+		}
+	]
+};
+
+/**
+ * Determines which properties are obscured based on the character's attributes.
+ * @param characterProperties - The properties of the character.
+ * @returns A set of obscured properties.
+ */
+export function getObscuredProperties(
+	characterProperties: CharacterProperties
+): Set<keyof CharacterProperties> {
+	const obscured = new Set<keyof CharacterProperties>();
+
+	for (const [property, dependencyArray] of Object.entries(propertyDependencies)) {
+		const prop = property as keyof CharacterProperties;
+		const value = characterProperties[prop];
+
+		if (dependencyArray) {
+			for (const dependency of dependencyArray) {
+				if (dependency.values.includes(value)) {
+					for (const affectedProp of dependency.affects) {
+						obscured.add(affectedProp);
+					}
+				}
+			}
+		}
+	}
+
+	return obscured;
+}

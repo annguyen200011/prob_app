@@ -13,6 +13,7 @@
 		gameState,
 		resetGame as resetGameStore
 	} from '$lib/stores/gameStore';
+	import { getObscuredProperties } from '$lib/utils';
 	import type { Question, Character, ChatEntry } from '$lib/types';
 	import { get } from 'svelte/store';
 	import { browser } from '$app/environment';
@@ -137,12 +138,19 @@
 		const userQuestionMessage = `${question.type === 'is' ? 'Is it' : 'Is it not'} ${question.property} ${question.adjective}?`;
 		chatHistory.update((history) => [...history, { sender: 'user', message: userQuestionMessage }]);
 
-		// Determine the answer based on the target character's properties
-		let answer: 'Yes' | 'No' = 'No';
-		if (question.type === 'is') {
-			answer = target.properties[question.property] === question.adjective ? 'Yes' : 'No';
+		// Determine if the property is obscured
+		const obscuredProperties = getObscuredProperties(target.properties);
+		let answer: 'Yes' | 'No' | 'Maybe';
+
+		if (obscuredProperties.has(question.property)) {
+			answer = 'Maybe';
 		} else {
-			answer = target.properties[question.property] !== question.adjective ? 'Yes' : 'No';
+			// Determine the answer based on the target character's properties
+			if (question.type === 'is') {
+				answer = target.properties[question.property] === question.adjective ? 'Yes' : 'No';
+			} else {
+				answer = target.properties[question.property] !== question.adjective ? 'Yes' : 'No';
+			}
 		}
 
 		// Add bot's response to chat history
@@ -155,24 +163,50 @@
 	/**
 	 * Updates the probabilities of each character based on the user's question and bot's answer.
 	 * @param question - The Question object.
-	 * @param answer - The bot's response ('Yes' or 'No').
+	 * @param answer - The bot's response ('Yes', 'No', or 'Maybe').
 	 */
-	function updateProbabilities(question: Question, answer: 'Yes' | 'No') {
+	function updateProbabilities(question: Question, answer: 'Yes' | 'No' | 'Maybe') {
 		const currentCharacters = get(characters);
 
-		// Compute P(E|Hi) for each character based on the expected answer
+		// Calculate the obscurity probability
+		const totalCharacters = currentCharacters.length;
+		const charactersWithPropertyObscured = currentCharacters.filter((char) =>
+			getObscuredProperties(char.properties).has(question.property)
+		).length;
+
+		let obscurityProbability = charactersWithPropertyObscured / totalCharacters;
+
+		// Prevent division by zero
+		if (obscurityProbability === 0) {
+			obscurityProbability = 0.01; // A small value to avoid zero probability
+		} else if (obscurityProbability === 1) {
+			obscurityProbability = 0.99; // Slightly less than 1 to avoid certainty
+		}
+
+		// Compute P(E|Hi) for each character
 		const p_E_given_Hi = currentCharacters.map((char) => {
-			// Compute expectedAnswer based on char and question
-			let expectedAnswer: 'Yes' | 'No' = 'No';
-			if (question.type === 'is') {
-				expectedAnswer = char.properties[question.property] === question.adjective ? 'Yes' : 'No';
+			// Determine if the property is obscured for this character
+			const obscuredProperties = getObscuredProperties(char.properties);
+			let expectedAnswer: 'Yes' | 'No' | 'Maybe';
+
+			if (obscuredProperties.has(question.property)) {
+				expectedAnswer = 'Maybe';
 			} else {
-				// 'is_not'
-				expectedAnswer = char.properties[question.property] !== question.adjective ? 'Yes' : 'No';
+				if (question.type === 'is') {
+					expectedAnswer = char.properties[question.property] === question.adjective ? 'Yes' : 'No';
+				} else {
+					expectedAnswer = char.properties[question.property] !== question.adjective ? 'Yes' : 'No';
+				}
 			}
 
-			// Set P(E|Hi) = 1 if expectedAnswer === answer, else 0
-			return expectedAnswer === answer ? 1 : 0;
+			// Assign P(E|Hi) based on expectedAnswer and actual answer
+			if (expectedAnswer === answer) {
+				return 1;
+			} else if (expectedAnswer === 'Maybe' || answer === 'Maybe') {
+				return obscurityProbability;
+			} else {
+				return 0;
+			}
 		});
 
 		// Compute P(E)
