@@ -7,5 +7,5 @@
 docker build -t prob_app .
 
 # run docker app
-docker run -p 5173:5173 prob_app
+docker run --name prob_app --rm -p 5173:5173 prob_app   
 ```

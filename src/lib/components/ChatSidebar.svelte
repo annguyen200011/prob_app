@@ -217,7 +217,7 @@
 <div class="flex h-screen w-1/4 flex-col overflow-y-auto border-r border-gray-200 bg-gray-50 p-6">
 	<!-- Guess Section -->
 	<div class="mb-8">
-		<h2 class="mb-3 text-xl font-semibold text-gray-800">Guess the Character</h2>
+		<h2 class="mb-3 text-2xl font-semibold text-gray-800">Guess the Character</h2>
 		<div class="flex items-center space-x-2">
 			<label for="guess-input" class="sr-only">Enter character name</label>
 			<input
@@ -242,7 +242,7 @@
 	</div>
 
 	<!-- Question Section -->
-	<h2 class="mb-3 text-xl font-semibold text-gray-800">Ask a Question</h2>
+	<h2 class="mb-3 text-2xl font-semibold text-gray-800">Ask a Question</h2>
 	<div class="mb-8 space-y-4">
 		<div>
 			<label for="question-type" class="mb-2 block font-medium text-gray-700">Question Type:</label>

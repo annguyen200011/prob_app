@@ -55,11 +55,11 @@
 	</p>
 
 	<!-- Probability Progress Bar with Smooth Width and Color Transition -->
-	<div class="w-full mt-2 h-2 rounded-full bg-gray-200 overflow-hidden">
+	<!-- <div class="w-full mt-2 h-2 rounded-full bg-gray-200 overflow-hidden">
 		<div
 			in:scale={{ duration: 500 }}
 			class="h-full rounded-full transition-all duration-500 ease-in-out"
 			style="width: {character.probability}%; background-color: {character.probability >= 50 ? '#34D399' : character.probability >= 15 ? '#FBBF24' : '#F87171'};"
 		></div>
-	</div>
+	</div> -->
 </button>
