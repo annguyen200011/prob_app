@@ -1,3 +1,5 @@
+// src/lib/stores/gameStore.ts
+
 import { writable, type Writable } from 'svelte/store';
 import type { Character, Question, GameState, ChatEntry } from '../types';
 import { generateRandomProps, getRandomName, generateImageUrl } from '../utils';
@@ -46,6 +48,7 @@ export const characters: Writable<Character[]> = loadStore<Character[]>(
 );
 export const chatHistory: Writable<ChatEntry[]> = loadStore<ChatEntry[]>('chatHistory', []);
 export const questionsAsked: Writable<Question[]> = loadStore<Question[]>('questionsAsked', []);
+export const guessesMade: Writable<number> = loadStore<number>('guessesMade', 0); // New Store
 export const gameState: Writable<GameState> = loadStore<GameState>('gameState', {
 	targetCharacter: null,
 	gameStarted: false,
@@ -60,10 +63,10 @@ if (browser) {
 	questionsAsked.subscribe((value) =>
 		localStorage.setItem('questionsAsked', JSON.stringify(value))
 	);
+	guessesMade.subscribe((value) => localStorage.setItem('guessesMade', JSON.stringify(value))); // Save Guesses
 	gameState.subscribe((value) => localStorage.setItem('gameState', JSON.stringify(value)));
 }
 
-// Function to start a new game
 export function startGame() {
 	if (browser) {
 		const randomIndex = Math.floor(Math.random() * initialCharacters.length);
@@ -77,6 +80,7 @@ export function startGame() {
 		// Reset other stores
 		chatHistory.set([]);
 		questionsAsked.set([]);
+		guessesMade.set(0); // Reset Guesses
 		characters.set(initialCharacters);
 	}
 }

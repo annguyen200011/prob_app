@@ -8,7 +8,10 @@ export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 
 	theme: {
-		extend: {}
+		extend: {},
+		minHeight: {
+			'0': '0'
+		}
 	},
 
 	plugins: [typography, forms, containerQueries, aspectRatio]

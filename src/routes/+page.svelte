@@ -10,6 +10,7 @@
 		characters,
 		chatHistory,
 		questionsAsked,
+		guessesMade, // Import guessesMade
 		gameState,
 		resetGame as resetGameStore
 	} from '$lib/stores/gameStore';
@@ -17,9 +18,13 @@
 	import type { Question, Character, ChatEntry } from '$lib/types';
 	import { get } from 'svelte/store';
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	let gameWon = false;
 	let winningCharacter: Character | null = null;
+
+	// State to track if we're in guess mode
+	let isGuessMode = false;
 
 	// State for the modal
 	let selectedCharacter: Character | null = null;
@@ -53,14 +58,22 @@
 		processGuess(guess);
 	}
 
-	/**
-	 * Handles the selection of a character from CharacterCard.
-	 * @param event - The CustomEvent containing the selected Character object.
-	 */
+	function handleInitiateGuess() {
+		isGuessMode = true;
+	}
+
+	// Update handleSelectCharacter to process the guess if in guess mode
 	function handleSelectCharacter(event: CustomEvent<Character>) {
-		selectedCharacter = event.detail;
-		isModalOpen = true;
-		console.log(`Modal opened for: ${selectedCharacter.name}`); // Debugging line
+		const selectedChar = event.detail;
+
+		if (isGuessMode) {
+			isGuessMode = false; // Exit guess mode
+			processGuess(selectedChar.name);
+		} else {
+			// Open modal as before
+			selectedCharacter = selectedChar;
+			isModalOpen = true;
+		}
 	}
 
 	/**
@@ -77,7 +90,7 @@
 
 	/**
 	 * Processes the user's guess by comparing it with the target character.
-	 * @param guess - The player's guess.
+	 * @param guess - The player's guess (character name).
 	 */
 	function processGuess(guess: string) {
 		const target = get(gameState).targetCharacter;
@@ -89,21 +102,15 @@
 			return;
 		}
 
-		if (guess.trim() === '') {
-			// Should not happen due to UI disabling, but handle just in case
-			chatHistory.update((history) => [
-				...history,
-				{ sender: 'bot', message: 'Please enter a character name.' }
-			]);
-			return;
-		}
-
 		const normalizedGuess = guess.trim().toLowerCase();
 		const normalizedTarget = target.name.trim().toLowerCase();
 
 		// Add user's guess to chat history
 		const userGuessMessage = `I guess: ${guess.trim()}`;
 		chatHistory.update((history) => [...history, { sender: 'user', message: userGuessMessage }]);
+
+		// Increment the guessesMade store
+		guessesMade.update((count) => count + 1);
 
 		if (normalizedGuess === normalizedTarget) {
 			gameWon = true;
@@ -247,24 +254,24 @@
 
 <!-- Main Content Area -->
 <div
-	class="flex min-h-screen transition-opacity duration-500"
+	class="flex min-h-0 flex-1"
 	class:opacity-0={!displayComplete}
 	class:pointer-events-none={!displayComplete}
 >
 	<!-- Chat Sidebar Component -->
-	<ChatSidebar on:question={handleQuestion} on:guess={handleGuess} />
+	<ChatSidebar on:question={handleQuestion} on:initiateGuess={handleInitiateGuess} />
 
 	<!-- Character Cards Area -->
-	<main class="flex-1 bg-gray-100 p-6">
-		<div class="grid grid-cols-6 gap-4">
+	<main class="flex min-h-0 flex-1 flex-col bg-gray-100 p-6">
+		<div class="grid flex-1 grid-cols-6 gap-4 overflow-y-auto">
 			{#each $characters as character}
-				<CharacterCard {character} on:select={handleSelectCharacter} />
+				<CharacterCard {character} on:select={handleSelectCharacter} {isGuessMode} />
 			{/each}
 		</div>
 	</main>
 </div>
 
-<Footer />
+<!-- <Footer /> -->
 
 <!-- Win Modal -->
 {#if gameWon && winningCharacter}
@@ -290,8 +297,8 @@
 				class="mx-auto my-4 h-48 w-48 rounded-full border-4 border-blue-500 shadow-lg"
 			/>
 
-			<!-- Summary of Questions Used -->
-			<p class="text-lg font-semibold">Questions Asked: {$questionsAsked.length}</p>
+			<!-- Summary of Questions and Guesses Used -->
+			<p class="text-lg font-semibold">Total Actions: {$questionsAsked.length + $guessesMade}</p>
 
 			<!-- Play Again Button -->
 			<button
