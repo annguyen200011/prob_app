@@ -258,6 +258,9 @@ const characterNames = [
 	'Leona'
 ];
 
+let shuffledNames: string[] = [];
+let nameIndex = 0;
+
 export function generateRandomProps(): CharacterProperties {
 	const props: Partial<CharacterProperties> = {};
 
@@ -277,7 +280,22 @@ export function generateImageUrl(props: CharacterProperties): string {
 	return `https://avataaars.io/?avatarStyle=Transparent&${propsStr}`;
 }
 
+function shuffleArray(array: string[]): string[] {
+	return array
+		.map((name) => ({ name, sort: Math.random() }))
+		.sort((a, b) => a.sort - b.sort)
+		.map(({ name }) => name);
+}
+
 export function getRandomName(): string {
-	const randomIndex = Math.floor(Math.random() * characterNames.length);
-	return characterNames[randomIndex];
+	// Shuffle names once if this is the first call or if all names have been used
+	if (shuffledNames.length === 0 || nameIndex >= shuffledNames.length) {
+		shuffledNames = shuffleArray([...characterNames]);
+		nameIndex = 0; // reset index
+	}
+
+	// Pick the next name in the shuffled array
+	const name = shuffledNames[nameIndex];
+	nameIndex++;
+	return name;
 }

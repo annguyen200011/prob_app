@@ -25,7 +25,7 @@
 	aria-label={`Character card for ${character.name} with probability ${character.probability.toFixed(0)}%`}
 >
 	<!-- Probability Badge based on probability level -->
-	{#if character.probability >= 50}
+	{#if character.probability >= 20}
 		<span class="absolute right-2 top-2 rounded-full bg-green-500 px-2 py-1 text-xs font-semibold text-white shadow-md">
 			High
 		</span>

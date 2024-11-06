@@ -89,10 +89,10 @@
 				<div class="h-4 w-full overflow-hidden rounded-full bg-gray-200">
 					<div
 						class="h-full rounded-full transition-all duration-500"
-						style="width: {character.probability}%; background-color: {character.probability >= 50
-							? '#34D399'  /* Green for high probability */
+						style="width: {character.probability}%; background-color: {character.probability >= 20
+							? '#34D399' /* Green for high probability */
 							: character.probability >= 15
-								? '#FBBF24'  /* Yellow for medium probability */
+								? '#FBBF24' /* Yellow for medium probability */
 								: '#F87171'};  /* Red for low probability */"
 					></div>
 				</div>
