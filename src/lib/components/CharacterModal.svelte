@@ -88,12 +88,12 @@
 				<p class="text-center font-semibold">Probability</p>
 				<div class="h-4 w-full overflow-hidden rounded-full bg-gray-200">
 					<div
-						class="h-full rounded-full"
-						style="width: {character.probability}%; background-color: {character.probability > 75
-							? '#34D399'
-							: character.probability > 25
-								? '#60A5FA'
-								: '#F87171'};"
+						class="h-full rounded-full transition-all duration-500"
+						style="width: {character.probability}%; background-color: {character.probability >= 50
+							? '#34D399'  /* Green for high probability */
+							: character.probability >= 15
+								? '#FBBF24'  /* Yellow for medium probability */
+								: '#F87171'};  /* Red for low probability */"
 					></div>
 				</div>
 				<p class="mt-1 text-center text-sm font-semibold text-gray-600">
