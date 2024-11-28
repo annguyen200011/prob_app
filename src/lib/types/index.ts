@@ -1,3 +1,8 @@
+export interface PropertyOption {
+	display: string;
+	value: string;
+}
+
 export interface CharacterProperties {
 	topType: string;
 	accessoriesType: string;

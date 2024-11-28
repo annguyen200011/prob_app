@@ -1,7 +1,8 @@
 <!-- src/lib/components/CharacterModal.svelte -->
 <script lang="ts">
-	import type { Character } from '../types';
+	import type { Character, CharacterProperties, PropertyOption } from '../types';
 	import { createEventDispatcher, onMount, afterUpdate } from 'svelte';
+	import { properties, propertyDisplayNames } from '../utils'; // Import propertyDisplayNames
 
 	export let character: Character | null = null;
 	export let isOpen: boolean = false;
@@ -48,6 +49,14 @@
 			console.log(`Modal is open for: ${character?.name}`); // Debugging line
 		}
 	});
+
+	/**
+	 * Utility function to get display name from value
+	 */
+	function getDisplayName(property: keyof CharacterProperties, value: string): string {
+		const option = properties[property].find((opt: PropertyOption) => opt.value === value);
+		return option ? option.display : value;
+	}
 </script>
 
 {#if isOpen && character}
@@ -105,10 +114,12 @@
 			<div class="grid grid-cols-3 gap-4">
 				{#each Object.entries(character.properties) as [property, value]}
 					<div class="flex flex-col items-start rounded-lg bg-gray-100 p-3 shadow-sm">
-						<span class="text-xs font-bold uppercase text-gray-500"
-							>{property.replace(/([A-Z])/g, ' $1')}</span
-						>
-						<span class="text-sm font-medium text-gray-800">{value}</span>
+						<span class="text-xs font-bold uppercase text-gray-500">
+							{propertyDisplayNames[property as keyof CharacterProperties]}
+						</span>
+						<span class="text-sm font-medium text-gray-800">
+							{getDisplayName(property as keyof CharacterProperties, value)}
+						</span>
 					</div>
 				{/each}
 			</div>

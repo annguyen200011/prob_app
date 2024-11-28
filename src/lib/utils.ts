@@ -1,154 +1,109 @@
-import type { CharacterProperties } from './types';
+import type { CharacterProperties, PropertyOption } from './types';
 
-const properties: { [key in keyof CharacterProperties]: string[] } = {
+export const propertyDisplayNames: { [key in keyof CharacterProperties]: string } = {
+	topType: 'Hat Type / Hair Type',
+	accessoriesType: 'Glasses Type',
+	hairColor: 'Hair Color',
+	facialHairType: 'Facial Hair Type',
+	facialHairColor: 'Facial Hair Color',
+	clotheType: 'Clothe Type',
+	clotheColor: 'Clothe Color',
+	eyeType: 'Eye Type',
+	eyebrowType: 'Eyebrow Type',
+	mouthType: 'Mouth Type',
+	skinColor: 'Skin Color'
+};
+
+export const properties: { [key in keyof CharacterProperties]: PropertyOption[] } = {
 	topType: [
-		'NoHair',
-		'Eyepatch',
-		'Hat',
-		'Hijab',
-		'Turban',
-		'WinterHat1',
-		'WinterHat2',
-		'WinterHat3',
-		'WinterHat4',
-		'LongHairBigHair',
-		'LongHairBob',
-		'LongHairBun',
-		'LongHairCurly',
-		'LongHairCurvy',
-		'LongHairDreads',
-		'LongHairFrida',
-		'LongHairFro',
-		'LongHairFroBand',
-		'LongHairNotTooLong',
-		'LongHairShavedSides',
-		'LongHairMiaWallace',
-		'LongHairStraight',
-		'LongHairStraight2',
-		'LongHairStraightStrand',
-		'ShortHairDreads01',
-		'ShortHairDreads02',
-		'ShortHairFrizzle',
-		'ShortHairShaggyMullet',
-		'ShortHairShortCurly',
-		'ShortHairShortFlat',
-		'ShortHairShortRound',
-		'ShortHairShortWaved',
-		'ShortHairSides',
-		'ShortHairTheCaesar',
-		'ShortHairTheCaesarSidePart'
+		{ display: 'No Hair', value: 'NoHair' },
+		{ display: 'Hat', value: 'Hat' },
+		{ display: 'Hijab', value: 'Hijab' },
+		{ display: 'Turban', value: 'Turban' },
+		{ display: 'Winter Hat', value: 'WinterHat1' },
+		{ display: 'Long Hair', value: 'LongHairBigHair' },
+		{ display: 'Short Hair', value: 'ShortHairShortCurly' }
 	],
 	accessoriesType: [
-		'Blank',
-		'Kurt',
-		'Prescription01',
-		'Prescription02',
-		'Round',
-		'Sunglasses',
-		'Wayfarers'
+		{ display: 'None', value: 'Blank' },
+		{ display: 'Glasses', value: 'Round' },
+		{ display: 'Sunglasses', value: 'Sunglasses' },
+		{ display: 'Wayfarers', value: 'Wayfarers' }
 	],
 	hairColor: [
-		'Auburn',
-		'Black',
-		'Blonde',
-		'BlondeGolden',
-		'Brown',
-		'BrownDark',
-		'PastelPink',
-		'Blue',
-		'Platinum',
-		'Red',
-		'SilverGray'
+		{ display: 'Auburn', value: 'Auburn' },
+		{ display: 'Black', value: 'Black' },
+		{ display: 'Blonde', value: 'Blonde' },
+		{ display: 'Brown', value: 'Brown' },
+		{ display: 'Pastel Pink', value: 'PastelPink' },
+		{ display: 'Red', value: 'Red' },
+		{ display: 'Silver', value: 'SilverGray' }
 	],
 	facialHairType: [
-		'Blank',
-		'BeardMedium',
-		'BeardLight',
-		'BeardMajestic',
-		'MoustacheFancy',
-		'MoustacheMagnum'
+		{ display: 'None', value: 'Blank' },
+		{ display: 'Beard', value: 'BeardMedium' },
+		{ display: 'Moustache', value: 'MoustacheFancy' }
 	],
 	facialHairColor: [
-		'Auburn',
-		'Black',
-		'Blonde',
-		'BlondeGolden',
-		'Brown',
-		'BrownDark',
-		'Platinum',
-		'Red'
+		{ display: 'Auburn', value: 'Auburn' },
+		{ display: 'Black', value: 'Black' },
+		{ display: 'Blonde', value: 'Blonde' },
+		{ display: 'Brown', value: 'Brown' },
+		{ display: 'Platinum', value: 'Platinum' },
+		{ display: 'Red', value: 'Red' }
 	],
 	clotheType: [
-		'BlazerShirt',
-		'BlazerSweater',
-		'CollarSweater',
-		'GraphicShirt',
-		'Hoodie',
-		'Overall',
-		'ShirtCrewNeck',
-		'ShirtScoopNeck',
-		'ShirtVNeck'
+		{ display: 'Blazer', value: 'BlazerShirt' },
+		{ display: 'Sweater', value: 'CollarSweater' },
+		{ display: 'Graphic Tee', value: 'GraphicShirt' },
+		{ display: 'Hoodie', value: 'Hoodie' },
+		{ display: 'Overall', value: 'Overall' },
+		{ display: 'Crew Neck Shirt', value: 'ShirtCrewNeck' },
+		{ display: 'V-Neck Shirt', value: 'ShirtVNeck' }
 	],
 	clotheColor: [
-		'Black',
-		'Blue01',
-		'Blue02',
-		'Blue03',
-		'Gray01',
-		'Gray02',
-		'Heather',
-		'PastelBlue',
-		'PastelGreen',
-		'PastelOrange',
-		'PastelRed',
-		'PastelYellow',
-		'Pink',
-		'Red',
-		'White'
+		{ display: 'Black', value: 'Black' },
+		{ display: 'Blue', value: 'Blue01' },
+		{ display: 'Gray', value: 'Gray01' },
+		{ display: 'Heather', value: 'Heather' },
+		{ display: 'Pastel', value: 'PastelBlue' },
+		{ display: 'Pink', value: 'Pink' },
+		{ display: 'Red', value: 'Red' },
+		{ display: 'White', value: 'White' }
 	],
 	eyeType: [
-		'Close',
-		'Cry',
-		'Default',
-		'Dizzy',
-		'EyeRoll',
-		'Happy',
-		'Hearts',
-		'Side',
-		'Squint',
-		'Surprised',
-		'Wink',
-		'WinkWacky'
+		{ display: 'Default', value: 'Default' },
+		{ display: 'Cry', value: 'Cry' },
+		{ display: 'Happy', value: 'Happy' },
+		{ display: 'Surprised', value: 'Surprised' },
+		{ display: 'Wink', value: 'Wink' },
+		{ display: 'Hearts', value: 'Hearts' },
+		{ display: 'Side', value: 'Side' },
+		{ display: 'Dizzy', value: 'Dizzy' }
 	],
 	eyebrowType: [
-		'Angry',
-		'AngryNatural',
-		'Default',
-		'DefaultNatural',
-		'FlatNatural',
-		'RaisedExcited',
-		'RaisedExcitedNatural',
-		'SadConcerned',
-		'SadConcernedNatural',
-		'UnibrowNatural',
-		'UpDown',
-		'UpDownNatural'
+		{ display: 'Default', value: 'Default' },
+		{ display: 'Angry', value: 'Angry' },
+		{ display: 'Raised', value: 'RaisedExcited' },
+		{ display: 'Sad', value: 'SadConcerned' },
+		{ display: 'Unibrow', value: 'UnibrowNatural' },
+		{ display: 'UpDown', value: 'UpDown' }
 	],
 	mouthType: [
-		'Concerned',
-		'Default',
-		'Disbelief',
-		'Eating',
-		'Grimace',
-		'Sad',
-		'ScreamOpen',
-		'Serious',
-		'Smile',
-		'Tongue',
-		'Twinkle',
-		'Vomit'
+		{ display: 'Default', value: 'Default' },
+		{ display: 'Smile', value: 'Smile' },
+		{ display: 'Sad', value: 'Sad' },
+		{ display: 'Grimace', value: 'Grimace' },
+		{ display: 'Open', value: 'ScreamOpen' },
+		{ display: 'Tongue', value: 'Tongue' }
 	],
-	skinColor: ['Tanned', 'Yellow', 'Pale', 'Light', 'Brown', 'DarkBrown', 'Black']
+	skinColor: [
+		{ display: 'Light', value: 'Light' },
+		{ display: 'Tan', value: 'Tanned' },
+		{ display: 'Yellow', value: 'Yellow' },
+		{ display: 'Brown', value: 'Brown' },
+		{ display: 'Dark', value: 'Black' }
+	]
 };
 
 const characterNames = [
@@ -267,7 +222,8 @@ export function generateRandomProps(): CharacterProperties {
 	for (const key in properties) {
 		const propKey = key as keyof CharacterProperties;
 		const options = properties[propKey];
-		props[propKey] = options[Math.floor(Math.random() * options.length)];
+		const randomOption = options[Math.floor(Math.random() * options.length)];
+		props[propKey] = randomOption.value;
 	}
 
 	return props as CharacterProperties;
@@ -275,7 +231,7 @@ export function generateRandomProps(): CharacterProperties {
 
 export function generateImageUrl(props: CharacterProperties): string {
 	const propsStr = Object.entries(props)
-		.map(([key, value]) => `${key}=${value}`)
+		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
 		.join('&');
 	return `https://avataaars.io/?avatarStyle=Transparent&${propsStr}`;
 }
@@ -310,7 +266,6 @@ export const propertyDependencies: {
 		{
 			values: [
 				'NoHair',
-				'Eyepatch',
 				'Hat',
 				'Hijab',
 				'Turban',
@@ -320,10 +275,6 @@ export const propertyDependencies: {
 				'WinterHat4'
 			],
 			affects: ['hairColor']
-		},
-		{
-			values: ['Eyepatch'],
-			affects: ['accessoriesType']
 		}
 	],
 	accessoriesType: [
